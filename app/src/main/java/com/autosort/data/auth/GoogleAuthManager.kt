@@ -21,8 +21,8 @@ import kotlinx.coroutines.flow.asStateFlow
 class GoogleAuthManager private constructor(private val context: Context) {
 
     companion object {
-        const val WEB_CLIENT_ID =
-            "83615545541-2rha8pilq3b9j6ft4jnnple7jhjsgjou.apps.googleusercontent.com"
+        // Fix 1: Client ID injected via BuildConfig from local.properties (gitignored)
+        val WEB_CLIENT_ID: String = com.autosort.BuildConfig.WEB_CLIENT_ID
 
         @Volatile
         private var INSTANCE: GoogleAuthManager? = null

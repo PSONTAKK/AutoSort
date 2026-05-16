@@ -24,6 +24,15 @@ class LocalFileDestination : FileDestination {
 
         val targetDir = File(targetPath)
 
+        // Fix 7: Path traversal protection — ensure target stays within external storage
+        val allowedRoot = android.os.Environment.getExternalStorageDirectory().canonicalPath
+        val canonicalTarget = targetDir.canonicalPath
+        if (!canonicalTarget.startsWith(allowedRoot)) {
+            throw SecurityException(
+                "Path traversal blocked: '$targetPath' resolves outside allowed storage"
+            )
+        }
+
         // Create target directory if it doesn't exist
         if (!targetDir.exists()) {
             targetDir.mkdirs()

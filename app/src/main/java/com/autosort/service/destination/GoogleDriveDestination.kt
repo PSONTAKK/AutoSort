@@ -111,8 +111,9 @@ class GoogleDriveDestination(
         folderName: String,
         parentId: String
     ): String {
-        // Search for existing folder
-        val query = "name = '$folderName' and " +
+        // Fix 3: Escape single quotes to prevent Drive API query injection
+        val safeName = folderName.replace("\\", "\\\\").replace("'", "\\'")
+        val query = "name = '$safeName' and " +
                 "'$parentId' in parents and " +
                 "mimeType = 'application/vnd.google-apps.folder' and " +
                 "trashed = false"

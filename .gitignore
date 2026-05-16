@@ -1,18 +1,16 @@
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
 .DS_Store
 build/
 captures/
 .externalNativeBuild
 .cxx
 local.properties
+
+# IDE (Fix 2: never commit IDE/editor state)
+.idea/
+.kotlin/
 
 # Heap dumps
 *.hprof
@@ -21,3 +19,6 @@ local.properties
 *.keystore
 keystore.properties
 app/release.keystore
+
+# Security plan (project-local docs, not app code)
+security_hardening_plan.md

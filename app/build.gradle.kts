@@ -20,6 +20,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Fix 1: Inject Client ID from local.properties (gitignored) into BuildConfig
+        val localProps = Properties()
+        val localPropsFile = rootProject.file("local.properties")
+        if (localPropsFile.exists()) {
+            localProps.load(FileInputStream(localPropsFile))
+        }
+        buildConfigField(
+            "String",
+            "WEB_CLIENT_ID",
+            "\"${localProps.getProperty("WEB_CLIENT_ID", "")}\""
+        )
     }
 
     // Load keystore properties if available
@@ -61,6 +73,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -114,4 +127,8 @@ dependencies {
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
+
+    // Security (Fix 6: EncryptedSharedPreferences, Fix 5: SQLCipher)
+    implementation(libs.androidx.security.crypto)
+    implementation(libs.sqlcipher)
 }

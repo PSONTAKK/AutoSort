@@ -57,13 +57,24 @@ class FileSortEngine(
         // ── Filter 3: Rule match ───────────────────────────────────────────
         val activeRules = ruleRepository.getActiveRules()
         val matchedRule = activeRules.firstOrNull { rule ->
-            val pattern = when (rule.type) {
-                RuleType.CONTAINS -> ".*${Regex.escape(rule.value)}.*"
-                RuleType.ENDS     -> ".*${Regex.escape(rule.value)}$"
-                RuleType.STARTS   -> "^${Regex.escape(rule.value)}.*"
-                RuleType.REGEX    -> rule.value
+            try {
+                val pattern = when (rule.type) {
+                    RuleType.CONTAINS -> ".*${Regex.escape(rule.value)}.*"
+                    RuleType.ENDS     -> ".*${Regex.escape(rule.value)}$"
+                    RuleType.STARTS   -> "^${Regex.escape(rule.value)}.*"
+                    RuleType.REGEX    -> rule.value  // Fix 4: wrapped in try-catch below
+                }
+                // Fix 4: Timeout guard — withTimeout cancels coroutine if regex hangs
+                kotlinx.coroutines.withTimeout(2000L) {
+                    fileName.matches(Regex(pattern, RegexOption.IGNORE_CASE))
+                }
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                Log.e(TAG, "Regex timed out for rule '${rule.name}': ${rule.value}")
+                false
+            } catch (e: Exception) {
+                Log.e(TAG, "Invalid regex in rule '${rule.name}': ${e.message}")
+                false
             }
-            fileName.matches(Regex(pattern, RegexOption.IGNORE_CASE))
         }
 
         if (matchedRule == null) {

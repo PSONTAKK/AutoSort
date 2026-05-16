@@ -32,6 +32,8 @@ google-api-services-drive = { group = "com.google.apis", name = "google-api-serv
 google-api-client-android = { group = "com.google.api-client", name = "google-api-client-android", version = "2.2.0" }
 google-http-client-gson = { group = "com.google.http-client", name = "google-http-client-gson", version = "1.43.3" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version = "1.1.0-alpha06" }
+sqlcipher = { group = "net.zetetic", name = "android-database-sqlcipher", version = "4.5.4" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
