@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">AutoSort</string>
+    <string name="channel_name">AutoSort Service</string>
+    <string name="channel_description">Monitors Downloads folder and sorts files automatically</string>
+    <string name="notification_title">AutoSort Active</string>
+    <string name="notification_text">Monitoring Downloads folder…</string>
+    <string name="permission_title">Storage Access Required</string>
+    <string name="permission_body">AutoSort needs All Files Access to monitor your Downloads folder and move files to your chosen destinations.</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="add_rule">Add Rule</string>
+    <string name="save_rule">Save Rule</string>
+    <string name="delete_rule">Delete Rule</string>
+    <string name="view_logs">View Logs</string>
+    <string name="no_rules">No rules yet</string>
+    <string name="no_rules_hint">Tap + to create your first sort rule</string>
+    <string name="no_logs">No logs yet</string>
+    <string name="no_logs_hint">Sort events will appear here</string>
+    <string name="clear_logs">Clear Logs</string>
+    <string name="clear_logs_confirm">Clear all logs?</string>
+    <string name="clear_logs_body">This will permanently delete all log entries.</string>
+    <string name="clear">Clear</string>
+    <string name="cancel">Cancel</string>
+</resources>

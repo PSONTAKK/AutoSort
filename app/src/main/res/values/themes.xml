@@ -1,0 +1,4 @@
+<resources>
+    <!-- Base application theme — Compose handles the real theme; this just satisfies the Manifest. -->
+    <style name="Theme.AutoSort" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
