@@ -1,16 +1,13 @@
 package com.autosort.data.db
 
 import android.content.Context
-import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
-import androidx.room.migration.Migration
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.autosort.data.model.DestinationType
 import com.autosort.data.model.LogStatus
 import com.autosort.data.model.Rule
@@ -18,7 +15,6 @@ import com.autosort.data.model.RuleType
 import com.autosort.data.model.SortLog
 import net.sqlcipher.database.SupportFactory
 import java.security.SecureRandom
-import java.util.UUID
 
 class Converters {
 

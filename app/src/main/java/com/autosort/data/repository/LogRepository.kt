@@ -11,4 +11,6 @@ class LogRepository(private val logDao: LogDao) {
     suspend fun insert(log: SortLog) = logDao.insert(log)
 
     suspend fun clearAll() = logDao.clearAll()
+
+    suspend fun pruneOldLogs() = logDao.pruneOldLogs()
 }

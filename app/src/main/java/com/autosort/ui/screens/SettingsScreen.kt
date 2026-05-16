@@ -77,9 +77,8 @@ fun SettingsScreen(
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            viewModel.handleGoogleSignInResult(result.data)
-        }
+        // V-03: Always pass result — handleSignInResult has try-catch for error codes
+        viewModel.handleGoogleSignInResult(result.data)
     }
 
     Scaffold(

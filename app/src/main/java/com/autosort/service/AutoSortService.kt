@@ -39,6 +39,7 @@ class AutoSortService : Service() {
 
     private lateinit var appConfig: AppConfig
     private lateinit var fileSortEngine: FileSortEngine
+    private lateinit var logRepository: LogRepository
     private var fileObserver: FileObserver? = null
 
     // ── Lifecycle ─────────────────────────────────────────────────────────
@@ -50,7 +51,7 @@ class AutoSortService : Service() {
 
         val db             = AppDatabase.getInstance(this)
         val ruleRepository = RuleRepository(db.ruleDao())
-        val logRepository  = LogRepository(db.logDao())
+        logRepository = LogRepository(db.logDao())
 
         // ── Destination Registry ──────────────────────────────────────────
         // Add new FileDestination implementations here as you build them.
@@ -73,6 +74,13 @@ class AutoSortService : Service() {
                 Log.i(TAG, "Source folder changed to: $folder")
                 startObserver(folder)
             }
+        }
+
+        // V-04: Prune old logs every time the service starts
+        serviceScope.launch {
+            try {
+                logRepository.pruneOldLogs()
+            } catch (_: Exception) { /* non-critical */ }
         }
 
         Log.i(TAG, "AutoSortService started")

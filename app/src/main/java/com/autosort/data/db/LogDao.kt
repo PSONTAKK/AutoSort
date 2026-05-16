@@ -18,4 +18,8 @@ interface LogDao {
 
     @Query("DELETE FROM logs")
     suspend fun clearAll()
+
+    /** V-04: Keep only the most recent 500 log entries */
+    @Query("DELETE FROM logs WHERE id NOT IN (SELECT id FROM logs ORDER BY time DESC LIMIT 500)")
+    suspend fun pruneOldLogs()
 }
