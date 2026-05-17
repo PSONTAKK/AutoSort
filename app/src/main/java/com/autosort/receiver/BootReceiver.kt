@@ -15,11 +15,19 @@ class BootReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
+        val appConfig = com.autosort.data.config.AppConfig(context)
+        
         if (action != Intent.ACTION_BOOT_COMPLETED &&
-            action != "android.intent.action.LOCKED_BOOT_COMPLETED"
+            action != "android.intent.action.LOCKED_BOOT_COMPLETED" &&
+            action != "com.autosort.ACTION_RESUME_SERVICE"
         ) return
 
-        Log.i(TAG, "Boot completed — starting AutoSortService")
+        if (appConfig.isPaused()) {
+            Log.i(TAG, "Service is still paused until ${appConfig.pauseUntil}. Skipping start.")
+            return
+        }
+
+        Log.i(TAG, "Starting AutoSortService (Action: $action)")
 
         val serviceIntent = Intent(context, AutoSortService::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

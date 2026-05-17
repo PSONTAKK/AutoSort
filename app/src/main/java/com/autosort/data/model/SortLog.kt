@@ -6,7 +6,8 @@ import androidx.room.PrimaryKey
 enum class LogStatus {
     SUCCESS,
     FAIL_IO,
-    SKIPPED
+    SKIPPED,
+    WARNING
 }
 
 @Entity(tableName = "logs")

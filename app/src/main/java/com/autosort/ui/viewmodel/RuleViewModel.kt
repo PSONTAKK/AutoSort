@@ -31,7 +31,8 @@ class RuleViewModel(application: Application) : AndroidViewModel(application) {
         type: RuleType,
         value: String,
         target: String,
-        destinationType: DestinationType = DestinationType.LOCAL
+        destinationType: DestinationType = DestinationType.LOCAL,
+        sourceFolder: String? = null
     ) {
         viewModelScope.launch {
             repository.insert(
@@ -41,7 +42,8 @@ class RuleViewModel(application: Application) : AndroidViewModel(application) {
                     value           = value.trim(),
                     target          = target.trim(),
                     destinationType = destinationType,
-                    active          = true
+                    active          = true,
+                    sourceFolder    = sourceFolder?.trim()?.takeIf { it.isNotBlank() }
                 )
             )
         }

@@ -73,6 +73,7 @@ fun AddRuleScreen(
     var selectedType     by remember { mutableStateOf(RuleType.CONTAINS) }
     var selectedDestType by remember { mutableStateOf(DestinationType.LOCAL) }
     var targetPath       by remember { mutableStateOf("") }
+    var sourcePath       by remember { mutableStateOf("") }
     var dropdownOpen     by remember { mutableStateOf(false) }
     var destDropdownOpen by remember { mutableStateOf(false) }
 
@@ -91,16 +92,25 @@ fun AddRuleScreen(
                 selectedType     = rule.type
                 selectedDestType = rule.destinationType
                 targetPath       = rule.target
+                sourcePath       = rule.sourceFolder ?: ""
             }
         }
     }
 
     // FolderPicker — resolves URI to real FS path under /storage/emulated/0/
-    val folderPickerLauncher = rememberLauncherForActivityResult(
+    val targetPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
     ) { uri: Uri? ->
         if (uri != null) {
             targetPath = resolveUriToPath(uri)
+        }
+    }
+
+    val sourcePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            sourcePath = resolveUriToPath(uri)
         }
     }
 
@@ -225,6 +235,39 @@ fun AddRuleScreen(
                 Text("Match value is required", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
             }
 
+            // ── Source Folder (Optional) ──────────────────────────────────
+            SectionLabel("Source Folder (Optional)")
+            Row(
+                modifier            = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .clickable { sourcePickerLauncher.launch(null) }
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment   = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    imageVector        = Icons.Default.Folder,
+                    contentDescription = null,
+                    tint               = Primary,
+                    modifier           = Modifier.size(22.dp)
+                )
+                Text(
+                    text  = sourcePath.ifEmpty { "Default (Settings Source Folder)" },
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (sourcePath.isEmpty())
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                            else
+                                MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
             // ── Target Folder / Drive Path ───────────────────────────────
             if (selectedDestType == DestinationType.CLOUD_GDRIVE) {
                 SectionLabel("Drive Folder Path")
@@ -256,7 +299,7 @@ fun AddRuleScreen(
                                     else MaterialTheme.colorScheme.outline,
                             shape = RoundedCornerShape(12.dp)
                         )
-                        .clickable { folderPickerLauncher.launch(null) }
+                        .clickable { targetPickerLauncher.launch(null) }
                         .padding(horizontal = 16.dp, vertical = 14.dp),
                     verticalAlignment   = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -368,11 +411,12 @@ fun AddRuleScreen(
                                     value           = value.trim(),
                                     target          = targetPath.trim(),
                                     destinationType = selectedDestType,
-                                    active          = true
+                                    active          = true,
+                                    sourceFolder    = sourcePath.trim().takeIf { it.isNotBlank() }
                                 )
                             )
                         } else {
-                            viewModel.addRule(name, selectedType, value, targetPath, selectedDestType)
+                            viewModel.addRule(name, selectedType, value, targetPath, selectedDestType, sourcePath)
                         }
                         onBack()
                     }

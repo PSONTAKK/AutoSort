@@ -49,6 +49,7 @@ import com.autosort.data.model.SortLog
 import com.autosort.ui.theme.StatusFailIo
 import com.autosort.ui.theme.StatusSkipped
 import com.autosort.ui.theme.StatusSuccess
+import com.autosort.ui.theme.StatusWarning
 import com.autosort.ui.viewmodel.LogViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -167,6 +168,7 @@ private fun LogCard(log: SortLog) {
         LogStatus.SUCCESS -> Triple(StatusSuccess,  "SUCCESS",  "✓")
         LogStatus.FAIL_IO -> Triple(StatusFailIo,   "FAIL_IO",  "✗")
         LogStatus.SKIPPED -> Triple(StatusSkipped,  "SKIPPED",  "–")
+        LogStatus.WARNING -> Triple(StatusWarning,  "WARNING",  "⚠")
     }
 
     Card(

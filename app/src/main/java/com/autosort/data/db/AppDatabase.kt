@@ -1,6 +1,7 @@
 package com.autosort.data.db
 
 import android.content.Context
+import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -39,7 +40,7 @@ class Converters {
 
 @Database(
     entities = [Rule::class, SortLog::class],
-    version = 3, // Bumped version to trigger recreation if needed
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -49,6 +50,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun logDao(): LogDao
 
     companion object {
+        private const val TAG = "AppDatabase"
+
         @Volatile
         private var INSTANCE: AppDatabase? = null
         private const val DB_KEY_PREFS = "db_encryption_prefs"
@@ -70,7 +73,6 @@ abstract class AppDatabase : RoomDatabase() {
 
             var passphraseStr = prefs.getString(KEY_DB_PASSPHRASE, null)
             if (passphraseStr == null) {
-                // Generate a random 256-bit passphrase
                 val randomBytes = ByteArray(32)
                 SecureRandom().nextBytes(randomBytes)
                 passphraseStr = android.util.Base64.encodeToString(randomBytes, android.util.Base64.DEFAULT)
@@ -81,7 +83,20 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
-                // Fix 5: Use SQLCipher SupportFactory with a secure random key
+                INSTANCE ?: buildDatabase(context).also { INSTANCE = it }
+            }
+        }
+
+        /**
+         * Tries SQLCipher encrypted DB first. If the native library crashes or
+         * fails to load on certain devices (e.g. some MIUI/MediaTek devices),
+         * falls back to a standard unencrypted Room database so the app still works.
+         */
+        private fun buildDatabase(context: Context): AppDatabase {
+            return try {
+                // Test that SQLCipher native library can load
+                System.loadLibrary("sqlcipher")
+
                 val passphrase = getDatabasePassphrase(context)
                 val factory = SupportFactory(passphrase)
 
@@ -91,9 +106,25 @@ abstract class AppDatabase : RoomDatabase() {
                     "autosort_encrypted.db"
                 )
                     .openHelperFactory(factory)
-                    .fallbackToDestructiveMigration() // Existing plain-text DB will be destroyed and recreated as encrypted
+                    .fallbackToDestructiveMigration()
                     .build()
-                    .also { INSTANCE = it }
+                    .also {
+                        // Verify the DB actually opens (catches header mismatch)
+                        it.openHelper.writableDatabase
+                        Log.i(TAG, "Using SQLCipher encrypted database")
+                    }
+            } catch (e: Throwable) {
+                // SQLCipher failed — native lib missing, UnsatisfiedLinkError,
+                // or device-specific incompatibility. Fall back to plain Room.
+                Log.w(TAG, "SQLCipher unavailable on this device, using standard database: ${e.message}")
+
+                Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "autosort.db"
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
             }
         }
     }

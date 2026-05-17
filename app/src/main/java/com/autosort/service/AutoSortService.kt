@@ -40,7 +40,8 @@ class AutoSortService : Service() {
     private lateinit var appConfig: AppConfig
     private lateinit var fileSortEngine: FileSortEngine
     private lateinit var logRepository: LogRepository
-    private var fileObserver: FileObserver? = null
+    private lateinit var ruleRepository: RuleRepository
+    private val observers = mutableListOf<FileObserver>()
 
     // ── Lifecycle ─────────────────────────────────────────────────────────
 
@@ -50,8 +51,8 @@ class AutoSortService : Service() {
         appConfig = AppConfig(this)
 
         val db             = AppDatabase.getInstance(this)
-        val ruleRepository = RuleRepository(db.ruleDao())
-        logRepository = LogRepository(db.logDao())
+        ruleRepository     = RuleRepository(db.ruleDao())
+        logRepository      = LogRepository(db.logDao())
 
         // ── Destination Registry ──────────────────────────────────────────
         // Add new FileDestination implementations here as you build them.
@@ -68,11 +69,18 @@ class AutoSortService : Service() {
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, buildNotification())
 
-        // Observe source folder — restarts FileObserver whenever it changes
+        // Observe source folder changes
         serviceScope.launch {
-            appConfig.sourceFolderFlow().collectLatest { folder ->
-                Log.i(TAG, "Source folder changed to: $folder")
-                startObserver(folder)
+            appConfig.sourceFolderFlow().collectLatest {
+                Log.i(TAG, "Global source folder changed or rules updated")
+                startObservers()
+            }
+        }
+        
+        // Also observe rule changes so we watch new source folders automatically
+        serviceScope.launch {
+            ruleRepository.allRules.collectLatest {
+                startObservers()
             }
         }
 
@@ -87,12 +95,19 @@ class AutoSortService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == "ACTION_FORCE_SCAN") {
+            Log.i(TAG, "Manual scan triggered by user via ACTION_FORCE_SCAN")
+            serviceScope.launch {
+                startObservers() // Restarts observers and triggers initial scan
+            }
+        }
         return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        fileObserver?.stopWatching()
+        observers.forEach { it.stopWatching() }
+        observers.clear()
         serviceJob.cancel()
         Log.i(TAG, "AutoSortService destroyed")
     }
@@ -101,38 +116,47 @@ class AutoSortService : Service() {
 
     // ── FileObserver ──────────────────────────────────────────────────────
 
-    private fun startObserver(folderPath: String) {
-        // Stop previous observer if running
-        fileObserver?.stopWatching()
+    private suspend fun startObservers() {
+        // Stop previous observers
+        observers.forEach { it.stopWatching() }
+        observers.clear()
 
-        val mask = FileObserver.CLOSE_WRITE or FileObserver.MOVED_TO
-
-        fileObserver = object : FileObserver(File(folderPath), mask) {
-            override fun onEvent(event: Int, path: String?) {
-                if (path == null) return
-
-                val fullPath = "$folderPath/$path"
-                Log.d(TAG, "FileObserver event=$event path=$fullPath")
-
-                serviceScope.launch {
-                    fileSortEngine.process(fullPath)
+        val rules = ruleRepository.getActiveRules()
+        val globalFolder = appConfig.sourceFolder
+        val foldersToWatch = mutableSetOf(globalFolder)
+        
+        // Add all valid custom source folders from active rules
+        rules.forEach { rule ->
+            rule.sourceFolder?.let { customFolder ->
+                if (customFolder.isNotBlank() && File(customFolder).exists()) {
+                    foldersToWatch.add(customFolder)
                 }
             }
         }
 
-        fileObserver?.startWatching()
-        Log.i(TAG, "FileObserver watching: $folderPath  mask=$mask")
+        val mask = FileObserver.CLOSE_WRITE or FileObserver.MOVED_TO
 
-        // ── Initial scan: process files already in the folder ────────────
-        serviceScope.launch {
-            val folder = File(folderPath)
-            if (folder.exists() && folder.isDirectory) {
-                val existing = folder.listFiles()?.filter { it.isFile } ?: emptyList()
-                Log.i(TAG, "Initial scan: found ${existing.size} existing files in $folderPath")
-                for (file in existing) {
-                    Log.d(TAG, "Initial scan processing: ${file.absolutePath}")
-                    fileSortEngine.process(file.absolutePath)
+        for (folderPath in foldersToWatch) {
+            val folderFile = File(folderPath)
+            if (!folderFile.exists()) continue
+
+            val observer = object : FileObserver(folderFile, mask) {
+                override fun onEvent(event: Int, path: String?) {
+                    if (path == null) return
+                    val fullPath = "$folderPath/$path"
+                    Log.d(TAG, "FileObserver event=$event path=$fullPath")
+                    serviceScope.launch { fileSortEngine.process(fullPath) }
                 }
+            }
+            observer.startWatching()
+            observers.add(observer)
+            Log.i(TAG, "FileObserver watching: $folderPath  mask=$mask")
+
+            // ── Initial scan: process files already in the folder ────────────
+            val existing = folderFile.listFiles()?.filter { it.isFile } ?: emptyList()
+            Log.i(TAG, "Initial scan: found ${existing.size} existing files in $folderPath")
+            for (file in existing) {
+                fileSortEngine.process(file.absolutePath)
             }
         }
     }

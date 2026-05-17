@@ -82,6 +82,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startSortingService() {
+        val appConfig = com.autosort.data.config.AppConfig(this)
+        if (appConfig.isPaused()) {
+            return
+        }
+
         val intent = Intent(this, AutoSortService::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intent)

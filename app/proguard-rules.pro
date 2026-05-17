@@ -26,12 +26,22 @@
 -keep @androidx.room.Entity class * { *; }
 -keep @androidx.room.Dao interface * { *; }
 
+# ── SQLCipher (JNI native code requires all fields/methods) ───────
+-keep class net.sqlcipher.** { *; }
+-keep class net.sqlcipher.database.** { *; }
+-dontwarn net.sqlcipher.**
+
 # ── Kotlin Coroutines ─────────────────────────────────────────────
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
 -keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
 
 # ── Compose ───────────────────────────────────────────────────────
 -dontwarn androidx.compose.**
+-keep class androidx.compose.** { *; }
+-keepclassmembers class * {
+    @androidx.compose.runtime.Composable <methods>;
+}
+-keep class androidx.navigation.** { *; }
 
 # ── Strip debug/verbose logging from release (Fix 10) ─────────────
 -assumenosideeffects class android.util.Log {
@@ -51,4 +61,4 @@
 # ── General hardening ─────────────────────────────────────────────
 -repackageclasses 'a'
 -allowaccessmodification
--optimizationpasses 5
+-optimizationpasses 2

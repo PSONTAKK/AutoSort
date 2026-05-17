@@ -23,6 +23,7 @@ class AppConfig(context: Context) {
         private const val PREFS_NAME          = "autosort_config_encrypted"
         private const val LEGACY_PREFS_NAME   = "autosort_config"
         private const val KEY_SOURCE_FOLDER   = "source_folder"
+        private const val KEY_PAUSE_UNTIL     = "pause_until"
 
         private val DEFAULT_SOURCE_FOLDER: String =
             Environment.getExternalStoragePublicDirectory(
@@ -64,6 +65,16 @@ class AppConfig(context: Context) {
         editor.apply()
         legacy.edit().clear().apply()
         Log.i(TAG, "Migrated legacy prefs to encrypted store")
+    }
+
+    // ── Pause state ───────────────────────────────────────────────────────
+
+    var pauseUntil: Long
+        get() = prefs.getLong(KEY_PAUSE_UNTIL, 0L)
+        set(value) = prefs.edit().putLong(KEY_PAUSE_UNTIL, value).apply()
+
+    fun isPaused(): Boolean {
+        return System.currentTimeMillis() < pauseUntil
     }
 
     // ── Source folder ──────────────────────────────────────────────────────

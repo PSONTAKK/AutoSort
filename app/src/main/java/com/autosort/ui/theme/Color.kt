@@ -22,6 +22,7 @@ val OnSurface      = Color(0xFFE8E8FF)
 val StatusSuccess  = Color(0xFF4CAF82)
 val StatusFailIo   = Color(0xFFFF5370)
 val StatusSkipped  = Color(0xFF7C7C9A)
+val StatusWarning  = Color(0xFFFFA726)
 
 // Misc
 val Outline        = Color(0xFF3D3D5C)

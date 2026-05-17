@@ -31,5 +31,6 @@ data class Rule(
     val value: String,
     val target: String,
     val destinationType: DestinationType = DestinationType.LOCAL,
-    val active: Boolean = true
+    val active: Boolean = true,
+    val sourceFolder: String? = null
 )

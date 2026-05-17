@@ -40,6 +40,20 @@ class FileSortEngine(
 
     suspend fun process(filePath: String) = withContext(Dispatchers.IO) {
         val file = File(filePath)
+
+        // ── Existence check: file may already have been moved/deleted ─────
+        if (!file.exists()) {
+            Log.w(TAG, "File no longer exists (already moved?): ${file.name}")
+            logRepository.insert(
+                SortLog(
+                    name   = file.name,
+                    target = "",
+                    status = LogStatus.WARNING
+                )
+            )
+            return@withContext
+        }
+
         val fileName = file.name
 
         // ── Filter 1: Incomplete download ──────────────────────────────────

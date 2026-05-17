@@ -12,6 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -62,11 +68,33 @@ fun PermissionRationaleScreen(onGrantClick: () -> Unit) {
             )
 
             Text(
-                text      = "AutoSort needs \"All Files Access\" to monitor your Downloads folder and move files to your chosen destinations.",
+                text      = "AutoSort requires \"All Files Access\" to automate file management. However, we take your privacy extremely seriously.",
                 style     = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
-                color     = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
+                color     = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
             )
+
+            // Privacy Promise Box
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Privacy Promise & T&C",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = Primary
+                )
+
+                PrivacyPoint("We ONLY access the specific Source Folder you configure (default: Downloads).")
+                PrivacyPoint("We ONLY write to the exact Target Folders you define in your rules.")
+                PrivacyPoint("No files are ever read, scanned, or uploaded to any third-party server outside of your explicitly connected Google Drive.")
+            }
 
             Spacer(Modifier.height(8.dp))
 
@@ -86,5 +114,27 @@ fun PermissionRationaleScreen(onGrantClick: () -> Unit) {
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun PrivacyPoint(text: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Icon(
+            imageVector = Icons.Default.CheckCircle,
+            contentDescription = null,
+            tint = Primary,
+            modifier = Modifier.size(16.dp).padding(top = 2.dp)
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
+            lineHeight = 16.sp
+        )
     }
 }
