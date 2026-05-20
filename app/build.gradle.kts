@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
 
 android {
@@ -30,7 +31,12 @@ android {
         buildConfigField(
             "String",
             "WEB_CLIENT_ID",
-            "\"${localProps.getProperty("WEB_CLIENT_ID", "")}\""
+            "\"${localProps.getProperty("WEB_CLIENT_ID", "").trim()}\""
+        )
+        buildConfigField(
+            "String",
+            "GROQ_API_KEY",
+            "\"${localProps.getProperty("GROQ_API_KEY", "").trim()}\""
         )
     }
 
@@ -131,4 +137,17 @@ dependencies {
     // Security (Fix 6: EncryptedSharedPreferences, Fix 5: SQLCipher)
     implementation(libs.androidx.security.crypto)
     implementation(libs.sqlcipher)
+
+    // Monetization (AdMob)
+    implementation("com.google.android.gms:play-services-ads:23.0.0")
+
+    // Hilt (Dependency Injection)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.hilt.navigation.compose)
+
+    // WorkManager + Hilt Worker (V3: Monthly Reports)
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 }

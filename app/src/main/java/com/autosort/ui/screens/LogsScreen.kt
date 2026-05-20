@@ -1,6 +1,8 @@
 package com.autosort.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -164,6 +166,7 @@ fun LogsScreen(
 
 @Composable
 private fun LogCard(log: SortLog) {
+    var expanded by remember { mutableStateOf(false) }
     val (statusColor, statusLabel, statusIcon) = when (log.status) {
         LogStatus.SUCCESS -> Triple(StatusSuccess,  "SUCCESS",  "✓")
         LogStatus.FAIL_IO -> Triple(StatusFailIo,   "FAIL_IO",  "✗")
@@ -172,7 +175,9 @@ private fun LogCard(log: SortLog) {
     }
 
     Card(
-        modifier  = Modifier.fillMaxWidth(),
+        modifier  = Modifier
+            .fillMaxWidth()
+            .clickable { expanded = !expanded },
         shape     = RoundedCornerShape(12.dp),
         colors    = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
@@ -248,6 +253,53 @@ private fun LogCard(log: SortLog) {
                 )
             }
         }
+
+        // V2: Expandable audit details
+        AnimatedVisibility(visible = expanded) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(statusColor.copy(alpha = 0.05f))
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                if (log.sourcePath.isNotBlank()) {
+                    AuditRow(label = "Source", value = log.sourcePath)
+                }
+                if (log.ruleName.isNotBlank()) {
+                    AuditRow(label = "Rule", value = log.ruleName)
+                }
+                if (log.target.isNotBlank()) {
+                    AuditRow(label = "Destination", value = log.target)
+                }
+                if (log.sourcePath.isBlank() && log.ruleName.isBlank()) {
+                    Text(
+                        text  = "No audit data available for this entry",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AuditRow(label: String, value: String) {
+    Row {
+        Text(
+            text       = "$label: ",
+            style      = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.SemiBold,
+            color      = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        )
+        Text(
+            text     = value,
+            style    = MaterialTheme.typography.bodySmall,
+            color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 

@@ -1,21 +1,20 @@
 package com.autosort.ui.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.autosort.data.db.AppDatabase
 import com.autosort.data.model.SortLog
 import com.autosort.data.repository.LogRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LogViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository: LogRepository = LogRepository(
-        AppDatabase.getInstance(application).logDao()
-    )
+@HiltViewModel
+class LogViewModel @Inject constructor(
+    private val repository: LogRepository
+) : ViewModel() {
 
     val logs: StateFlow<List<SortLog>> = repository.recentLogs
         .stateIn(

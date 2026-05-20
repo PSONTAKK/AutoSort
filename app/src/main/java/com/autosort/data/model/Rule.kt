@@ -32,5 +32,9 @@ data class Rule(
     val target: String,
     val destinationType: DestinationType = DestinationType.LOCAL,
     val active: Boolean = true,
-    val sourceFolder: String? = null
+    val sourceFolder: String? = null,
+    // V2: If true, keep local file after uploading to Drive (only for CLOUD_GDRIVE)
+    val keepLocalAfterUpload: Boolean = false,
+    // V2: Support multiple Google accounts (which account to use for Drive)
+    val targetAccount: String? = null
 )

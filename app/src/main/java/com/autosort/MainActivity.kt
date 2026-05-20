@@ -1,6 +1,5 @@
 package com.autosort
 
-import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -13,14 +12,20 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
+import com.autosort.data.config.AppConfig
 import com.autosort.service.AutoSortService
 import com.autosort.ui.navigation.NavGraph
+import com.autosort.ui.navigation.Routes
 import com.autosort.ui.screens.PermissionRationaleScreen
 import com.autosort.ui.theme.AutoSortTheme
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject lateinit var appConfig: AppConfig
 
     private var hasStoragePermission by mutableStateOf(false)
 
@@ -52,7 +57,8 @@ class MainActivity : ComponentActivity() {
             AutoSortTheme {
                 if (hasStoragePermission) {
                     val navController = rememberNavController()
-                    NavGraph(navController = navController)
+                    val startDest = if (intent.getBooleanExtra("open_report", false)) Routes.MONTHLY_REPORT else Routes.DASHBOARD
+                    NavGraph(navController = navController, startDestination = startDest)
                 } else {
                     PermissionRationaleScreen(
                         onGrantClick = { openManageStorageSettings() }
@@ -82,7 +88,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startSortingService() {
-        val appConfig = com.autosort.data.config.AppConfig(this)
         if (appConfig.isPaused()) {
             return
         }

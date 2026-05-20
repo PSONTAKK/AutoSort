@@ -30,7 +30,8 @@ class GoogleDriveDestination(
     override suspend fun send(
         sourceFile: File,
         targetPath: String,
-        fileName: String
+        fileName: String,
+        keepLocalCopy: Boolean
     ): Result<String> = runCatching {
 
         Log.i(TAG, "send() called: file='$fileName' target='$targetPath' signed_in=${authManager.isSignedIn}")
@@ -61,8 +62,8 @@ class GoogleDriveDestination(
             .setFields("id, webViewLink")
             .execute()
 
-        // Delete local source file after successful upload
-        if (sourceFile.exists()) {
+        // V2: Only delete local source file if user has NOT opted to keep it
+        if (!keepLocalCopy && sourceFile.exists()) {
             sourceFile.delete()
         }
 

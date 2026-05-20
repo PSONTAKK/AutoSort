@@ -38,6 +38,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -47,9 +48,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.autosort.R
 import com.autosort.ui.theme.Primary
 import com.autosort.ui.theme.StatusSuccess
 import com.autosort.ui.viewmodel.SettingsViewModel
@@ -63,6 +66,9 @@ fun SettingsScreen(
     val sourceFolder   by viewModel.sourceFolder.collectAsState()
     val googleEmail    by viewModel.googleEmail.collectAsState()
     val isGoogleLinked by viewModel.isGoogleLinked.collectAsState()
+    val connectedAccounts by viewModel.connectedAccounts.collectAsState()
+    val subscriptionTier by viewModel.subscriptionTier.collectAsState()
+    val aiCreditsUsed by viewModel.aiCreditsUsed.collectAsState()
 
     val folderPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
@@ -87,7 +93,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text       = "Settings",
+                        text       = stringResource(R.string.settings_title),
                         fontWeight = FontWeight.Bold,
                         fontSize   = 20.sp
                     )
@@ -115,10 +121,73 @@ fun SettingsScreen(
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+            // ── V3: Monetization & Subscription ───────────────────────────
+            Text(
+                text          = stringResource(R.string.subscription_and_ai),
+                style         = MaterialTheme.typography.labelSmall,
+                fontWeight    = FontWeight.SemiBold,
+                color         = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                letterSpacing = 1.sp
+            )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape    = RoundedCornerShape(14.dp),
+                colors   = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text       = stringResource(R.string.current_tier, subscriptionTier),
+                            style      = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color      = MaterialTheme.colorScheme.onSurface
+                        )
+                        if (subscriptionTier != "INTELLIGENCE") {
+                            Button(
+                                onClick = { /* TODO: Launch Billing Flow */ },
+                                colors = ButtonDefaults.buttonColors(containerColor = Primary)
+                            ) {
+                                Text(stringResource(R.string.upgrade))
+                            }
+                        }
+                    }
+                    
+                    if (subscriptionTier != "INTELLIGENCE") {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text     = stringResource(R.string.ai_insights_used, aiCreditsUsed),
+                            style    = MaterialTheme.typography.bodyMedium,
+                            color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                        Text(
+                            text     = stringResource(R.string.ai_insights_reset_desc),
+                            style    = MaterialTheme.typography.bodySmall,
+                            color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    } else {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text     = stringResource(R.string.ai_insights_unlimited),
+                            style    = MaterialTheme.typography.bodyMedium,
+                            color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
 
             // ── Monitored Folder ──────────────────────────────────────────
             Text(
-                text          = "MONITORED FOLDER",
+                text          = stringResource(R.string.monitored_folder),
                 style         = MaterialTheme.typography.labelSmall,
                 fontWeight    = FontWeight.SemiBold,
                 color         = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
@@ -159,7 +228,7 @@ fun SettingsScreen(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text       = "Source Folder",
+                            text       = stringResource(R.string.source_folder),
                             style      = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color      = MaterialTheme.colorScheme.onSurface
@@ -175,7 +244,7 @@ fun SettingsScreen(
             }
 
             Text(
-                text  = "Tap to change the folder that AutoSort monitors. The service will restart automatically.",
+                text  = stringResource(R.string.tap_to_change_folder),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
             )
@@ -184,7 +253,7 @@ fun SettingsScreen(
 
             // ── Google Drive ──────────────────────────────────────────────
             Text(
-                text          = "GOOGLE DRIVE",
+                text          = stringResource(R.string.google_drive),
                 style         = MaterialTheme.typography.labelSmall,
                 fontWeight    = FontWeight.SemiBold,
                 color         = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
@@ -228,46 +297,61 @@ fun SettingsScreen(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text       = if (isGoogleLinked) "Connected" else "Not Connected",
+                            text       = if (connectedAccounts.isNotEmpty()) stringResource(R.string.connected_accounts_title) else stringResource(R.string.not_connected),
                             style      = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color      = MaterialTheme.colorScheme.onSurface
                         )
-                        Text(
-                            text     = if (isGoogleLinked) googleEmail
-                                       else "Sign in to upload files to Google Drive",
-                            style    = MaterialTheme.typography.bodyMedium,
-                            color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.padding(top = 2.dp)
-                        )
+                        if (connectedAccounts.isEmpty()) {
+                            Text(
+                                text     = stringResource(R.string.sign_in_to_upload),
+                                style    = MaterialTheme.typography.bodyMedium,
+                                color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                        }
                     }
                 }
 
-                // Sign In / Sign Out button
-                if (isGoogleLinked) {
-                    OutlinedButton(
-                        onClick  = { viewModel.signOutGoogle() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                        shape    = RoundedCornerShape(10.dp)
-                    ) {
-                        Text("Sign Out", color = MaterialTheme.colorScheme.error)
+                // List connected accounts
+                if (connectedAccounts.isNotEmpty()) {
+                    connectedAccounts.forEach { email ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = email,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                            )
+                            TextButton(onClick = { viewModel.signOutGoogle(email) }) {
+                                Text(stringResource(R.string.remove), color = MaterialTheme.colorScheme.error)
+                            }
+                        }
                     }
-                } else {
-                    Button(
-                        onClick  = {
-                            val intent = viewModel.getGoogleSignInIntent()
-                            googleSignInLauncher.launch(intent)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                        shape    = RoundedCornerShape(10.dp),
-                        colors   = ButtonDefaults.buttonColors(containerColor = Primary)
-                    ) {
-                        Text("Sign in with Google", color = Color.White, fontWeight = FontWeight.SemiBold)
-                    }
+                }
+
+                // Add another account button
+                Button(
+                    onClick  = {
+                        val intent = viewModel.getGoogleSignInIntent()
+                        googleSignInLauncher.launch(intent)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    shape    = RoundedCornerShape(10.dp),
+                    colors   = ButtonDefaults.buttonColors(containerColor = Primary)
+                ) {
+                    Text(
+                        if (connectedAccounts.isEmpty()) stringResource(R.string.sign_in_with_google) else stringResource(R.string.add_another_account),
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
 
@@ -275,7 +359,7 @@ fun SettingsScreen(
 
             // ── Status Info ───────────────────────────────────────────────
             Text(
-                text          = "STATUS",
+                text          = stringResource(R.string.status_title),
                 style         = MaterialTheme.typography.labelSmall,
                 fontWeight    = FontWeight.SemiBold,
                 color         = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
@@ -314,13 +398,13 @@ fun SettingsScreen(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text       = "Service Status",
+                            text       = stringResource(R.string.service_status),
                             style      = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color      = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text     = "Active — watching for new files",
+                            text     = stringResource(R.string.status_active),
                             style    = MaterialTheme.typography.bodyMedium,
                             color    = StatusSuccess,
                             modifier = Modifier.padding(top = 2.dp)

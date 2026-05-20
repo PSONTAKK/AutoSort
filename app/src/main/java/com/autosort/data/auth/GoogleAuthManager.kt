@@ -92,15 +92,21 @@ class GoogleAuthManager private constructor(private val context: Context) {
 
     /**
      * Returns a GoogleAccountCredential suitable for initializing the
-     * Drive service. Returns null if not signed in.
+     * Drive service. If email is provided, creates a credential for that specific account.
      */
-    fun getCredential(): GoogleAccountCredential? {
-        val account = _signedInAccount.value ?: return null
+    fun getCredential(email: String? = null): GoogleAccountCredential? {
         val credential = GoogleAccountCredential.usingOAuth2(
             context,
             listOf(DriveScopes.DRIVE_FILE)
         )
-        credential.selectedAccount = account.account
-        return credential
+        
+        if (email != null && email.isNotBlank()) {
+            credential.selectedAccountName = email
+            return credential
+        } else {
+            val account = _signedInAccount.value ?: return null
+            credential.selectedAccount = account.account
+            return credential
+        }
     }
 }

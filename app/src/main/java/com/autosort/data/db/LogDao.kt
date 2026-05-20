@@ -22,4 +22,8 @@ interface LogDao {
     /** V-04: Keep only the most recent 500 log entries */
     @Query("DELETE FROM logs WHERE id NOT IN (SELECT id FROM logs ORDER BY time DESC LIMIT 500)")
     suspend fun pruneOldLogs()
+
+    /** V3: Get logs since a specific timestamp for monthly reports */
+    @Query("SELECT * FROM logs WHERE time >= :since ORDER BY time DESC")
+    suspend fun getLogsSince(since: Long): List<SortLog>
 }

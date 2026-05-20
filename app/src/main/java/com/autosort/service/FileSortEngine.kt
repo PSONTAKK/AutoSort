@@ -95,9 +95,11 @@ class FileSortEngine(
             Log.d(TAG, "No rule matched: $fileName")
             logRepository.insert(
                 SortLog(
-                    name   = fileName,
-                    target = "",
-                    status = LogStatus.SKIPPED
+                    name       = fileName,
+                    target     = "",
+                    status     = LogStatus.SKIPPED,
+                    sourcePath = file.parent ?: "",
+                    ruleName   = ""
                 )
             )
             return@withContext
@@ -109,24 +111,34 @@ class FileSortEngine(
             Log.e(TAG, "No destination registered for type: ${matchedRule.destinationType}")
             logRepository.insert(
                 SortLog(
-                    name   = fileName,
-                    target = matchedRule.target,
-                    status = LogStatus.FAIL_IO
+                    name       = fileName,
+                    target     = matchedRule.target,
+                    status     = LogStatus.FAIL_IO,
+                    sourcePath = file.parent ?: "",
+                    ruleName   = matchedRule.name
                 )
             )
             return@withContext
         }
 
-        val result = destination.send(file, matchedRule.target, fileName)
+        // V2: Pass keepLocalAfterUpload flag to the destination
+        val result = destination.send(
+            sourceFile    = file,
+            targetPath    = matchedRule.target,
+            fileName      = fileName,
+            keepLocalCopy = matchedRule.keepLocalAfterUpload
+        )
 
         result.fold(
             onSuccess = { finalPath ->
                 Log.i(TAG, "Sorted '$fileName' -> '$finalPath' via ${matchedRule.destinationType}")
                 logRepository.insert(
                     SortLog(
-                        name   = fileName,
-                        target = finalPath,
-                        status = LogStatus.SUCCESS
+                        name       = fileName,
+                        target     = finalPath,
+                        status     = LogStatus.SUCCESS,
+                        sourcePath = file.parent ?: "",
+                        ruleName   = matchedRule.name
                     )
                 )
             },
@@ -134,9 +146,11 @@ class FileSortEngine(
                 Log.e(TAG, "Failed to sort '$fileName': ${error.message}", error)
                 logRepository.insert(
                     SortLog(
-                        name   = fileName,
-                        target = matchedRule.target,
-                        status = LogStatus.FAIL_IO
+                        name       = fileName,
+                        target     = matchedRule.target,
+                        status     = LogStatus.FAIL_IO,
+                        sourcePath = file.parent ?: "",
+                        ruleName   = matchedRule.name
                     )
                 )
             }

@@ -14,3 +14,21 @@ To prevent local database bloat while preserving long-term sorting history for f
 - **CSV Export**: It will query all local logs from the past 7 days and convert them into a structured `.csv` file (e.g., `AutoSort_Logs_Week_4.csv`).
 - **Upload**: Utilizing the existing `GoogleDriveDestination` logic, the CSV will be silently uploaded to a designated "AutoSort Logs" folder in the user's Drive.
 - **Cleanup**: Once the upload is verified successful, the local SQLite database will be wiped clean to free up device storage.
+
+## 3. Cloud Drive File Retention Control
+Instead of forcefully deleting or keeping local files after a Drive upload, give users explicit control per rule:
+- **UI Checkbox**: Add `[ ] Delete original file after uploading` to the Rule Creation screen. 
+- **Constraint**: This checkbox will **only** appear when the user selects `Google Drive` as the destination. Local folder destinations inherently perform a standard file move.
+- **Engine Logic**: `GoogleDriveDestination.kt` will read this flag and conditionally skip `sourceFile.delete()` if unchecked.
+
+## 4. Enhanced Audit Logs
+Upgrade the `SortLog` database and `LogsScreen` UI to provide a true audit trail for debugging:
+- **New Data**: Log the exact `Source Folder` path, the precise `Destination Folder`, and the `Rule Name` that triggered the action.
+- **Expandable UI**: Keep the log cards compact by default. When a user taps a card, expand it to reveal the rich audit data, ensuring the screen remains clean and readable.
+
+## 5. Smart Storage Cleanup Assistant
+To prevent local storage bloat for users who choose *not* to delete files after a Drive upload:
+- **Background Scanner**: Implement a `WorkManager` task that runs daily.
+- **Logic**: It will query the logs for files uploaded to Google Drive > 7 days ago where the local file still exists.
+- **Actionable Notification**: Send a smart reminder: *"You have X files safely backed up to Google Drive. Tap to clear local storage."*
+- **Cleanup UI**: Tapping the notification opens a "Storage Assistant" screen allowing users to delete all old, backed-up files with a single tap.

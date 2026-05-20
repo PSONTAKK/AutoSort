@@ -19,7 +19,8 @@ class LocalFileDestination : FileDestination {
     override suspend fun send(
         sourceFile: File,
         targetPath: String,
-        fileName: String
+        fileName: String,
+        keepLocalCopy: Boolean
     ): Result<String> = runCatching {
 
         val targetDir = File(targetPath)

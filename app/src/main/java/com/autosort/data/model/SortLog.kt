@@ -17,5 +17,8 @@ data class SortLog(
     val time: Long = System.currentTimeMillis(),
     val name: String,
     val target: String,
-    val status: LogStatus
+    val status: LogStatus,
+    // V2: Enhanced audit trail fields
+    val sourcePath: String = "",
+    val ruleName: String = ""
 )

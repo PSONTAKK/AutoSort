@@ -12,6 +12,7 @@ import androidx.security.crypto.MasterKeys
 import com.autosort.data.model.DestinationType
 import com.autosort.data.model.LogStatus
 import com.autosort.data.model.Rule
+import com.autosort.data.model.AiInsight
 import com.autosort.data.model.RuleType
 import com.autosort.data.model.SortLog
 import net.sqlcipher.database.SupportFactory
@@ -39,8 +40,8 @@ class Converters {
 }
 
 @Database(
-    entities = [Rule::class, SortLog::class],
-    version = 4,
+    entities = [Rule::class, SortLog::class, AiInsight::class],
+    version = 7,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -48,6 +49,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun ruleDao(): RuleDao
     abstract fun logDao(): LogDao
+    abstract fun aiInsightDao(): AiInsightDao
 
     companion object {
         private const val TAG = "AppDatabase"

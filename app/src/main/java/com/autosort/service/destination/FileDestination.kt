@@ -20,11 +20,17 @@ interface FileDestination {
     /**
      * Transfer [sourceFile] to the given [targetPath] with [fileName].
      *
-     * @param sourceFile  The file to move/upload (guaranteed to exist).
-     * @param targetPath  The destination path/identifier (local path, cloud folder ID, etc.).
-     * @param fileName    The desired filename at the destination.
+     * @param sourceFile      The file to move/upload (guaranteed to exist).
+     * @param targetPath      The destination path/identifier (local path, cloud folder ID, etc.).
+     * @param fileName        The desired filename at the destination.
+     * @param keepLocalCopy   If true, keep the source file after transferring (V2 retention control).
      * @return [Result] containing the final destination path/URL on success,
      *         or the exception on failure.
      */
-    suspend fun send(sourceFile: File, targetPath: String, fileName: String): Result<String>
+    suspend fun send(
+        sourceFile: File,
+        targetPath: String,
+        fileName: String,
+        keepLocalCopy: Boolean = false
+    ): Result<String>
 }

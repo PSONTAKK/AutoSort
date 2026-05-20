@@ -20,4 +20,90 @@
     <string name="clear_logs_body">This will permanently delete all log entries.</string>
     <string name="clear">Clear</string>
     <string name="cancel">Cancel</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="subscription_and_ai">SUBSCRIPTION &amp; AI</string>
+    <string name="current_tier">Current Tier: %1$s</string>
+    <string name="upgrade">Upgrade</string>
+    <string name="ai_insights_used">AI Insights Used: %1$d / 10</string>
+    <string name="ai_insights_reset_desc">Resets every 30 days. Upgrade for unlimited scans and advanced monthly reports.</string>
+    <string name="ai_insights_unlimited">You have unlimited AI Insights and advanced reports.</string>
+    <string name="monitored_folder">MONITORED FOLDER</string>
+    <string name="source_folder">Source Folder</string>
+    <string name="tap_to_change_folder">Tap to change the folder that AutoSort monitors. The service will restart automatically.</string>
+    <string name="google_drive">GOOGLE DRIVE</string>
+    <string name="connected_accounts_title">Connected Accounts</string>
+    <string name="not_connected">Not Connected</string>
+    <string name="sign_in_to_upload">Sign in to upload files to Google Drive</string>
+    <string name="remove">Remove</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="add_another_account">Add Another Account</string>
+    <string name="status_title">STATUS</string>
+    <string name="service_status">Service Status</string>
+    <string name="status_active">Active — watching for new files</string>
+
+    <!-- Dashboard Screen -->
+    <string name="app_title">AutoSort</string>
+    <string name="view_logs_desc">View Logs</string>
+    <string name="scan_now">Scan Now</string>
+    <string name="settings_desc">Settings</string>
+    <string name="power">Power</string>
+    <string name="resume_service">Resume Service</string>
+    <string name="pause_1_hour">Pause for 1 Hour</string>
+    <string name="pause_8_hours">Pause for 8 Hours</string>
+    <string name="pause_1_day">Pause for 1 Day</string>
+    <string name="pause_2_days">Pause for 2 Days</string>
+    <string name="stop_indefinitely">Stop Indefinitely</string>
+    <string name="add_rule_fab">Add Rule</string>
+    <string name="no_rules_emoji">📂</string>
+    <string name="no_rules_text">No rules yet</string>
+    <string name="no_rules_hint_text">Tap + to create your first sort rule</string>
+    <string name="smart_suggestion">Smart Suggestion</string>
+    <string name="suggestion_text">%1$s We found %2$d files matching this pattern. Auto-sort them to \'%3$s\'?</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="create_rule">Create Rule</string>
+    <string name="ai_analyze">AI Analyze</string>
+    <string name="edit_rule">Edit Rule</string>
+
+    <!-- Monthly Report Screen -->
+    <string name="monthly_report_title">Monthly Report</string>
+    <string name="back">Back</string>
+    <string name="time_saved">You Saved %1$d Minutes!</string>
+    <string name="time_saved_desc">Based on an average of 2 minutes saved per manually sorted file.</string>
+    <string name="summary_label">SUMMARY</string>
+    <string name="success_rate">Success Rate</string>
+    <string name="files_sorted">Files Sorted</string>
+    <string name="skipped">Skipped</string>
+    <string name="failed">Failed</string>
+    <string name="top_rule_label">TOP RULE</string>
+    <string name="files_moved">%1$d files moved</string>
+    <string name="top_destinations_label">TOP DESTINATIONS</string>
+
+    <!-- Folder Insights Sheet -->
+    <string name="ai_folder_insights">AI Folder Insights</string>
+    <string name="step_scanning">Scanning</string>
+    <string name="step_folder">Folder</string>
+    <string name="step_privacy">Privacy</string>
+    <string name="step_analyzing">Analyzing</string>
+    <string name="step_results">Results</string>
+    <string name="scanning_title">Scanning Folder</string>
+    <string name="scanning_desc">Reading file names to generate a quick folder summary.</string>
+    <string name="folder_analyzing_title">Analyzing Folder…</string>
+    <string name="folder_analyzing_desc">Generating folder summary from file names. This is fast.</string>
+    <string name="folder_summary_title">📁 Folder Summary</string>
+    <string name="deep_analyze_button">🔍 Deep File Analysis</string>
+    <string name="deep_analyze_hint">Read file contents for detailed insights (uses 1 AI credit)</string>
+    <string name="deep_analyzing_title">Reading File Contents…</string>
+    <string name="deep_analyzing_desc">Analyzing file contents for deep insights. This may take a moment.</string>
+    <string name="analyzing_title">Gemini is Thinking…</string>
+    <string name="analyzing_desc">Generating personalized insights for your folder. This usually takes a few seconds.</string>
+    <string name="privacy_shield_title">Privacy Shield Active</string>
+    <string name="privacy_shield_desc">These files may contain sensitive data. Uncheck to exclude from deep analysis.</string>
+    <string name="confirm_and_analyze">Confirm &amp; Analyze</string>
+    <string name="analysis_complete">Analysis Complete</string>
+    <string name="deep_analysis_complete">Deep Analysis Complete</string>
+    <string name="analysis_failed">Analysis Failed</string>
+    <string name="done">Done</string>
+    <string name="close">Close</string>
 </resources>

@@ -25,6 +25,14 @@ class AppConfig(context: Context) {
         private const val KEY_SOURCE_FOLDER   = "source_folder"
         private const val KEY_PAUSE_UNTIL     = "pause_until"
 
+        // V3 Keys
+        private const val KEY_SUB_TIER = "sub_tier"
+        private const val KEY_AI_CREDITS = "ai_credits"
+        private const val KEY_AI_RESET_DATE = "ai_reset_date"
+        
+        // V2 Keys
+        private const val KEY_GOOGLE_ACCOUNTS = "google_accounts"
+
         private val DEFAULT_SOURCE_FOLDER: String =
             Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOWNLOADS
@@ -72,6 +80,64 @@ class AppConfig(context: Context) {
     var pauseUntil: Long
         get() = prefs.getLong(KEY_PAUSE_UNTIL, 0L)
         set(value) = prefs.edit().putLong(KEY_PAUSE_UNTIL, value).apply()
+
+    // ── V2: Multi-Account Drive ───────────────────────────────────────
+
+    var connectedGoogleAccounts: Set<String>
+        get() = prefs.getStringSet(KEY_GOOGLE_ACCOUNTS, emptySet()) ?: emptySet()
+        set(value) = prefs.edit().putStringSet(KEY_GOOGLE_ACCOUNTS, value).apply()
+
+    fun addGoogleAccount(email: String) {
+        val current = connectedGoogleAccounts.toMutableSet()
+        current.add(email)
+        connectedGoogleAccounts = current
+    }
+
+    fun removeGoogleAccount(email: String) {
+        val current = connectedGoogleAccounts.toMutableSet()
+        current.remove(email)
+        connectedGoogleAccounts = current
+    }
+
+    // ── V3: Monetization & Credits ────────────────────────────────────
+
+    var subscriptionTier: String
+        get() = prefs.getString(KEY_SUB_TIER, "FREE") ?: "FREE"
+        set(value) = prefs.edit().putString(KEY_SUB_TIER, value).apply()
+
+    var aiCreditsUsed: Int
+        get() = prefs.getInt(KEY_AI_CREDITS, 0)
+        set(value) = prefs.edit().putInt(KEY_AI_CREDITS, value).apply()
+
+    var aiCreditsResetDate: Long
+        get() = prefs.getLong(KEY_AI_RESET_DATE, 0L)
+        set(value) = prefs.edit().putLong(KEY_AI_RESET_DATE, value).apply()
+
+    /**
+     * Checks if user has remaining AI credits (resets monthly).
+     */
+    fun hasAiCredits(): Boolean {
+        if (subscriptionTier == "INTELLIGENCE") return true // Unlimited or higher limit?
+        
+        val now = System.currentTimeMillis()
+        if (now > aiCreditsResetDate) {
+            // Reset for the new month
+            aiCreditsUsed = 0
+            // Set next reset to 30 days from now
+            aiCreditsResetDate = now + (30L * 24 * 60 * 60 * 1000)
+        }
+        
+        return aiCreditsUsed < 10 // 10 free scans per month
+    }
+
+    /**
+     * Consumes one AI credit.
+     */
+    fun consumeAiCredit() {
+        if (subscriptionTier != "INTELLIGENCE") {
+            aiCreditsUsed += 1
+        }
+    }
 
     fun isPaused(): Boolean {
         return System.currentTimeMillis() < pauseUntil

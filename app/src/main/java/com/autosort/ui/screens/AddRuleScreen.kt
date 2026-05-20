@@ -27,6 +27,8 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,6 +42,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,11 +61,13 @@ import com.autosort.data.model.RuleType
 import com.autosort.ui.theme.Primary
 import com.autosort.ui.theme.StatusSkipped
 import com.autosort.ui.viewmodel.RuleViewModel
+import com.autosort.ui.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddRuleScreen(
     viewModel: RuleViewModel,
+    settingsViewModel: SettingsViewModel,
     editRuleId: String?,
     onBack: () -> Unit
 ) {
@@ -76,6 +82,11 @@ fun AddRuleScreen(
     var sourcePath       by remember { mutableStateOf("") }
     var dropdownOpen     by remember { mutableStateOf(false) }
     var destDropdownOpen by remember { mutableStateOf(false) }
+    var accountDropdownOpen by remember { mutableStateOf(false) }
+    var keepLocal        by remember { mutableStateOf(false) }
+    var selectedAccount  by remember { mutableStateOf<String?>(null) }
+    
+    val connectedAccounts by settingsViewModel.connectedAccounts.collectAsState()
 
     var nameError  by remember { mutableStateOf(false) }
     var valueError by remember { mutableStateOf(false) }
@@ -93,6 +104,15 @@ fun AddRuleScreen(
                 selectedDestType = rule.destinationType
                 targetPath       = rule.target
                 sourcePath       = rule.sourceFolder ?: ""
+                keepLocal        = rule.keepLocalAfterUpload
+                selectedAccount  = rule.targetAccount
+            }
+        }
+    } else {
+        // Default to first connected account if available
+        LaunchedEffect(connectedAccounts) {
+            if (selectedAccount == null && connectedAccounts.isNotEmpty()) {
+                selectedAccount = connectedAccounts.first()
             }
         }
     }
@@ -392,6 +412,94 @@ fun AddRuleScreen(
                 }
             }
 
+            // ── V2: Keep Local Copy Checkbox (Drive only) ─────────────────
+            AnimatedVisibility(visible = selectedDestType == DestinationType.CLOUD_GDRIVE) {
+                Row(
+                    modifier          = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        .clickable { keepLocal = !keepLocal }
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked         = keepLocal,
+                        onCheckedChange = { keepLocal = it },
+                        colors          = CheckboxDefaults.colors(checkedColor = Primary)
+                    )
+                    Column(modifier = Modifier.padding(start = 4.dp)) {
+                        Text(
+                            text       = "Keep local copy after uploading",
+                            style      = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color      = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text     = "File will remain on your phone after Drive upload",
+                            style    = MaterialTheme.typography.bodySmall,
+                            color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            fontSize = 11.sp
+                        )
+                    }
+                }
+            }
+
+            // ── V2: Multi-Account Selection (Drive only) ─────────────────
+            AnimatedVisibility(visible = selectedDestType == DestinationType.CLOUD_GDRIVE) {
+                Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                    Text(
+                        text  = "Google Account",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        modifier = Modifier.padding(bottom = 4.dp, start = 4.dp)
+                    )
+                    Box {
+                        OutlinedTextField(
+                            value = selectedAccount ?: "No accounts connected",
+                            onValueChange = {},
+                            readOnly = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { 
+                                    if (connectedAccounts.isNotEmpty()) accountDropdownOpen = true 
+                                },
+                            enabled = false,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                disabledBorderColor = MaterialTheme.colorScheme.outline,
+                                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            trailingIcon = {
+                                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                            }
+                        )
+                        DropdownMenu(
+                            expanded = accountDropdownOpen,
+                            onDismissRequest = { accountDropdownOpen = false }
+                        ) {
+                            connectedAccounts.forEach { account ->
+                                DropdownMenuItem(
+                                    text = { Text(account) },
+                                    onClick = {
+                                        selectedAccount = account
+                                        accountDropdownOpen = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    if (connectedAccounts.isEmpty()) {
+                        Text(
+                            text = "Please connect an account in Settings first.",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                        )
+                    }
+                }
+            }
+
             Spacer(Modifier.height(8.dp))
 
             // ── Save Button ───────────────────────────────────────────────
@@ -405,18 +513,20 @@ fun AddRuleScreen(
                         if (isEditMode) {
                             viewModel.updateRule(
                                 com.autosort.data.model.Rule(
-                                    id              = ruleId,
-                                    name            = name.trim(),
-                                    type            = selectedType,
-                                    value           = value.trim(),
-                                    target          = targetPath.trim(),
-                                    destinationType = selectedDestType,
-                                    active          = true,
-                                    sourceFolder    = sourcePath.trim().takeIf { it.isNotBlank() }
+                                    id                   = ruleId,
+                                    name                 = name.trim(),
+                                    type                 = selectedType,
+                                    value                = value.trim(),
+                                    target               = targetPath.trim(),
+                                    destinationType      = selectedDestType,
+                                    active               = true,
+                                    sourceFolder         = sourcePath.trim().takeIf { it.isNotBlank() },
+                                    keepLocalAfterUpload = keepLocal,
+                                    targetAccount        = selectedAccount
                                 )
                             )
                         } else {
-                            viewModel.addRule(name, selectedType, value, targetPath, selectedDestType, sourcePath)
+                            viewModel.addRule(name, selectedType, value, targetPath, selectedDestType, sourcePath, keepLocal, selectedAccount)
                         }
                         onBack()
                     }

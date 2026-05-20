@@ -10,22 +10,19 @@ import android.os.FileObserver
 import android.os.IBinder
 import android.util.Log
 import com.autosort.MainActivity
-import com.autosort.data.auth.GoogleAuthManager
 import com.autosort.data.config.AppConfig
-import com.autosort.data.db.AppDatabase
-import com.autosort.data.model.DestinationType
 import com.autosort.data.repository.LogRepository
 import com.autosort.data.repository.RuleRepository
-import com.autosort.service.destination.FileDestination
-import com.autosort.service.destination.GoogleDriveDestination
-import com.autosort.service.destination.LocalFileDestination
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class AutoSortService : Service() {
 
     companion object {
@@ -37,34 +34,17 @@ class AutoSortService : Service() {
     private val serviceJob   = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
 
-    private lateinit var appConfig: AppConfig
-    private lateinit var fileSortEngine: FileSortEngine
-    private lateinit var logRepository: LogRepository
-    private lateinit var ruleRepository: RuleRepository
+    @Inject lateinit var appConfig: AppConfig
+    @Inject lateinit var fileSortEngine: FileSortEngine
+    @Inject lateinit var logRepository: LogRepository
+    @Inject lateinit var ruleRepository: RuleRepository
+
     private val observers = mutableListOf<FileObserver>()
 
     // ── Lifecycle ─────────────────────────────────────────────────────────
 
     override fun onCreate() {
         super.onCreate()
-
-        appConfig = AppConfig(this)
-
-        val db             = AppDatabase.getInstance(this)
-        ruleRepository     = RuleRepository(db.ruleDao())
-        logRepository      = LogRepository(db.logDao())
-
-        // ── Destination Registry ──────────────────────────────────────────
-        // Add new FileDestination implementations here as you build them.
-        val googleAuthManager = GoogleAuthManager.getInstance(this)
-        val destinations: Map<DestinationType, FileDestination> = mapOf(
-            DestinationType.LOCAL        to LocalFileDestination(),
-            DestinationType.CLOUD_GDRIVE to GoogleDriveDestination(googleAuthManager)
-            // DestinationType.CLOUD_DROPBOX to DropboxDestination(context),
-            // DestinationType.CLOUD_S3      to S3Destination(context),
-        )
-
-        fileSortEngine = FileSortEngine(ruleRepository, logRepository, destinations)
 
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, buildNotification())
